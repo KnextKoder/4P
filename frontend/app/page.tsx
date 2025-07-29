@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Lightbulb, RotateCcw, Trophy } from "lucide-react"
+import Image from "next/image"
 
 // Sample puzzle data
 const puzzles = [
@@ -76,19 +77,19 @@ export default function FourPicsOneWord() {
   const [wrongAnswer, setWrongAnswer] = useState("")
 
   const currentPuzzle = puzzles[currentLevel]
-
-  useEffect(() => {
-    resetLevel()
-  }, [currentLevel])
-
-  const resetLevel = () => {
+  const resetLevel = useCallback(() => {
     setSelectedAnswer(new Array(currentPuzzle.answer.length).fill(""))
     setAvailableLetters([...currentPuzzle.letters])
     setIsCorrect(false)
     setShowHint(false)
     setIsWrong(false)
     setWrongAnswer("")
-  }
+  }, [currentPuzzle.answer.length, currentPuzzle.letters])
+
+  useEffect(() => {
+    resetLevel()
+  }, [currentLevel, resetLevel])
+
 
   const selectLetter = (letter: string, index: number) => {
     const firstEmptyIndex = selectedAnswer.findIndex((slot) => slot === "")
@@ -183,7 +184,7 @@ export default function FourPicsOneWord() {
           {currentPuzzle.images.map((image, index) => (
             <Card key={index} className="overflow-hidden">
               <CardContent className="p-0">
-                <img src={image || "/placeholder.svg"} alt={`Clue ${index + 1}`} className="w-full h-40 object-cover" />
+                <Image src={image || "/placeholder.svg"} width={150} height={150} alt={`Clue ${index + 1}`} className="w-full h-40 object-cover" />
               </CardContent>
             </Card>
           ))}
@@ -253,7 +254,7 @@ export default function FourPicsOneWord() {
               ) : (
                 <div>
                   <p className="text-green-800 font-bold mb-2">🏆 Congratulations!</p>
-                  <p className="text-green-700">You've completed all levels!</p>
+                  <p className="text-green-700">You&apos;ve completed all levels!</p>
                 </div>
               )}
             </CardContent>
@@ -266,7 +267,7 @@ export default function FourPicsOneWord() {
             <CardContent className="p-6 text-center">
               <h2 className="text-2xl font-bold text-red-800 mb-2">Wrong Answer! ❌</h2>
               <p className="text-red-700 mb-2">
-                <strong>"{wrongAnswer}"</strong> is not correct.
+                <strong>&quot;{wrongAnswer}&quot;</strong> is not correct.
               </p>
               <p className="text-red-600 text-sm">Try again! Look more carefully at the images.</p>
             </CardContent>
