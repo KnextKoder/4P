@@ -23,7 +23,8 @@ def gen():
         f'{{"answer": "apple", "image_prompts": ["prompt1", "prompt2", "prompt3", "prompt4"]}}'
     )
 
-    #llm logic here?
+    #llm logic here? -Busayo
+    # ode -Marvel
 
     llm_response = {}
 
