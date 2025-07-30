@@ -1,9 +1,5 @@
-import os
-
 from flask import Flask, request, jsonify
-
 app = Flask(__name__)
-
 
 @app.route('/generation', methods=['POST'])
 def gen():
@@ -25,6 +21,9 @@ def gen():
 
     #llm logic here? -Busayo
     # ode -Marvel
+    
+    # Integrate AI model response by using groq, not grok from XAI, https://console.groq.com/docs/overview || https://console.groq.com/docs/models
+    # Install the groq sdk, instantiate a new client, add your api_key and use the client to send the prompt to the model.
 
     llm_response = {}
 
