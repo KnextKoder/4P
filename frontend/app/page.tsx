@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 
 const predefinedTopics = [
-  "Porn",
+  "Chemistry",
   "Animals",
   "Nature",
   "Technologia",
