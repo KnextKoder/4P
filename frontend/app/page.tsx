@@ -19,7 +19,7 @@ const difficulties = [
 ]
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const llmPrompt = (topic: string, difficulty: string, contextSnippet: string = "") => `
+const llmPrompt = (topic: string, difficulty: string, contextSnippet: string = "") => {return `
 # 4 Pics 1 Word Puzzle Generation
 
 ## Context
@@ -45,23 +45,43 @@ ${contextSnippet ? `\nAdditional context:\n${contextSnippet}\n` : ""}
   ]
 }
 \`\`\`
-`
+`}
 
 export default function FourPicsOneWordLanding() {
   const [customTopic, setCustomTopic] = useState("")
   const [difficulty, setDifficulty] = useState("easy")
   const router = useRouter()
+  const backendUrl = "http://127.0.0.1:5000"
 
-  const handleCustomSubmit = (e: React.FormEvent) => {
+
+  const handleCustomSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (customTopic.trim()) {
-      // PRE-LLM
+    if (!customTopic.trim()) return
+
+    try {
+      const response = await fetch(`${backendUrl}/generation`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          topic: customTopic.trim(),
+          difficulty: difficulty
+        }),
+      })
+
+      const data = await response.json()
+      console.log("Response from backend:", data)
       router.push(`/topic?name=${encodeURIComponent(customTopic.trim())}&difficulty=${difficulty}`)
+    } catch (error) {
+      console.error("Failed to submit topic:", error)
+      // Optionally show an error message to the user
     }
   }
 
   const handlePredefinedClick = (topic: string) => {
-    router.push(`/topic?name=${encodeURIComponent(topic)}&difficulty=${difficulty}`)
+    console.log({"Predefined topic clicked:": topic, "Difficulty:": difficulty})
+    // router.push(`/topic?name=${encodeURIComponent(topic)}&difficulty=${difficulty}`)
   }
 
   return (
@@ -110,7 +130,7 @@ export default function FourPicsOneWordLanding() {
             <button
               key={topic}
               onClick={() => handlePredefinedClick(topic)}
-              className="bg-pink-400 hover:bg-pink-500 text-white font-bold py-2 rounded shadow"
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 rounded shadow"
             >
               {topic}
             </button>

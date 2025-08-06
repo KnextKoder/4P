@@ -1,9 +1,12 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/generation', methods=['POST'])
 def gen():
     incomingData = request.get_json()
+    print("Received data:", incomingData)
     topic = incomingData.get('topic')
     difficulty = incomingData.get('difficulty')
 
@@ -25,7 +28,17 @@ def gen():
     # Integrate AI model response by using groq, not grok from XAI, https://console.groq.com/docs/overview || https://console.groq.com/docs/models
     # Install the groq sdk, instantiate a new client, add your api_key and use the client to send the prompt to the model.
 
-    llm_response = {}
+    llm_response = {
+        topic.capitalize(): {
+            "hint": "EXAMPLE",
+            "prompts": [
+                "A red fruit on a tree branch",
+                "A basket of assorted fruits",
+                "A teacher's desk with a shiny fruit",
+                "A logo with a bite taken out"
+            ]
+        }
+    }
 
     result = llm_response.get(topic.capitalize())
 
