@@ -1,6 +1,0 @@
-{
-	"dependencies": {
-		"ai": "^5.0.4",
-		"@ai-sdk/groq": "^2.0.2"
-	}
-}
