@@ -1,10 +1,31 @@
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from groq import Groq
 app = Flask(__name__)
 CORS(app)
 
 @app.route('/generation', methods=['POST'])
 def gen():
+    print("Received request for generation")
+    client = Groq(
+        api_key= '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'
+    )
+    
+    print("Sending request to Groq model")
+    chat_completion = client.chat.completions.create(
+        messages=[
+        {
+            "role": "user",
+            "content": "Explain the importance of fast language models",
+        }
+        ],
+        model="llama-3.3-70b-versatile",
+    )
+
+    print("Received response from Groq model")
+    print("Response content:", chat_completion.choices[0].message.content)
+
     incomingData = request.get_json()
     print("Received data:", incomingData)
     topic = incomingData.get('topic')
