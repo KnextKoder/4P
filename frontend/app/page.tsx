@@ -72,7 +72,7 @@ export default function FourPicsOneWordLanding() {
 
       const data = await response.json()
       console.log("Response from backend:", data)
-      router.push(`/topic?name=${encodeURIComponent(customTopic.trim())}&difficulty=${difficulty}`)
+      // router.push(`/topic?name=${encodeURIComponent(customTopic.trim())}&difficulty=${difficulty}`)
     } catch (error) {
       console.error("Failed to submit topic:", error)
       // Optionally show an error message to the user
