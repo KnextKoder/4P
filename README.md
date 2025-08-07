@@ -1,2 +1,2 @@
-# 4dicks1word
+# 4P
 Hackathon Shii
