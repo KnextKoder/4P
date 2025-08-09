@@ -1,39 +1,179 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 4 Pics 1 Word - AI-Powered Game
 
-## Getting Started
+A modern implementation of the classic "4 Pics 1 Word" puzzle game powered by AI-generated content and images.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- 🎮 **Dynamic Gameplay**: AI-generated words and image prompts for unlimited replay value
+- 🖼️ **AI-Generated Images**: Custom images created for each puzzle using Google Gemini
+- 📚 **Educational Content**: Learn interesting facts with each correct answer
+- 🎯 **Customizable Difficulty**: Easy, Medium, and Hard difficulty levels
+- 🎨 **Modern UI**: Beautiful, responsive design built with Next.js and TailwindCSS
+- 📱 **Mobile-Friendly**: Optimized for all screen sizes
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, TypeScript, TailwindCSS, shadcn/ui
+- **Backend**: Next.js API Routes
+- **AI Services**:
+  - Groq API (Llama 3.3 70B) for text generation
+  - Google Gemini 2.0 for image generation
+- **Styling**: TailwindCSS with custom components
+- **Validation**: Zod for runtime type checking
+
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- API keys for Groq and Google AI
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/KnextKoder/4dicks1word.git
+   cd 4dicks1word/frontend
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+   Edit `.env.local` and add your API keys:
+
+   ```env
+   GROQ_API_KEY=your_groq_api_key_here
+   GOOGLE_AI_API_KEY=your_google_ai_api_key_here
+   ```
+
+4. **Get API Keys**
+
+   **Groq API Key:**
+   - Visit [Groq Console](https://console.groq.com/)
+   - Sign up/Login and create a new API key
+   - Copy the key to your `.env.local` file
+
+   **Google AI API Key:**
+   - Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Sign up/Login and create a new API key
+   - Copy the key to your `.env.local` file
+
+5. **Run the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+6. **Open the game**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## Project Structure
+
+```md
+frontend/
+├── app/
+│   ├── api/
+│   │   └── generation/
+│   │       └── route.ts          # Main API endpoint
+│   ├── page.tsx                  # Landing page
+│   └── topic/
+│       └── page.tsx              # Game interface
+├── components/
+│   └── ui/                       # Reusable UI components
+├── lib/
+│   ├── utils.ts                  # General utilities
+│   └── game-utils.ts             # Game-specific utilities
+└── public/
+    └── generated_images/         # AI-generated game images
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Game Flow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Topic Selection**: Choose from predefined topics or enter a custom topic
+2. **Difficulty**: Select Easy, Medium, or Hard difficulty
+3. **AI Generation**:
+   - Groq generates a word and image prompts
+   - Google Gemini creates 4 images based on the prompts
+4. **Gameplay**: Guess the word using the provided letter pool
+5. **Education**: Learn interesting facts about the correct answer
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## API Endpoints
 
-## Learn More
+### POST `/api/generation`
 
-To learn more about Next.js, take a look at the following resources:
+Generates a new puzzle with AI-created content.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Request Body:**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```json
+{
+  "topic": "string",
+  "difficulty": "easy" | "medium" | "hard"
+}
+```
 
-## Deploy on Vercel
+**Response:**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```json
+{
+  "answer": "string",
+  "image_prompts": ["string[]"],
+  "image_paths": ["string[]"],
+  "educational_fact": "string"
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Development
 
+### Adding New Features
 
+1. **New Topics**: Modify the `predefinedTopics` array in `app/page.tsx`
+2. **Difficulty Levels**: Adjust the prompt in `app/api/generation/route.ts`
+3. **UI Components**: Add new components in `components/ui/`
+4. **Game Logic**: Extend utilities in `lib/game-utils.ts`
 
+### Deployment
+
+The app is ready for deployment on:
+
+- **Vercel** (recommended for Next.js)
+- **Netlify**
+- **Railway**
+- **Any Node.js hosting service**
+
+Remember to set environment variables in your deployment platform.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Support
+
+For issues and questions:
+
+- Open an issue on GitHub
+- Check the documentation
+- Review the API documentation for Groq and Google AI
+
+---
+
+## Enjoy the game and happy learning! 🎮📚

@@ -5,9 +5,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Lightbulb, RotateCcw, Trophy, ArrowLeft } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { generateRandomLetters } from "@/lib/game-utils"
 
 interface GameData {
   answer: string
+  english_word: string
+  pronunciation: string
   image_prompts: string[]
   image_paths: string[]
   educational_fact: string
@@ -24,33 +27,9 @@ export default function FourPicsOneWord() {
   const [isWrong, setIsWrong] = useState(false)
   const [wrongAnswer, setWrongAnswer] = useState("")
   const [loading, setLoading] = useState(true)
+  // keyboard typing visual state removed (unused)
 
   // Generate random letters including the correct answer letters
-  const generateRandomLetters = (answer: string) => {
-    const answerLetters = answer.toUpperCase().split('')
-    const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-    
-    // Calculate how many extra letters we need to reach 12 total
-    const extraLettersNeeded = 12 - answerLetters.length
-    
-    // Get letters that aren't in the answer
-    const availableExtraLetters = allLetters.filter(letter => !answerLetters.includes(letter))
-    
-    // Randomly select the needed extra letters
-    const extraLetters = availableExtraLetters
-      .sort(() => Math.random() - 0.5)
-      .slice(0, extraLettersNeeded)
-    
-    // Combine answer letters with extra letters and shuffle
-    const finalLetters = [...answerLetters, ...extraLetters].sort(() => Math.random() - 0.5)
-    
-    // Ensure we always have exactly 12 letters
-    if (finalLetters.length !== 12) {
-      console.warn(`Expected 12 letters, but got ${finalLetters.length}. Answer: "${answer}"`)
-    }
-    
-    return finalLetters
-  }
   const resetLevel = useCallback(() => {
     if (!gameData) return
     setSelectedAnswer(new Array(gameData.answer.length).fill(""))
@@ -79,6 +58,31 @@ export default function FourPicsOneWord() {
       resetLevel()
     }
   }, [gameData, resetLevel])
+
+  // Keyboard input handlers: letters to fill slots, backspace remove, enter check
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!gameData || isCorrect) return
+      const key = e.key
+      if (/^[a-zA-Z]$/.test(key)) {
+        const letter = key.toUpperCase()
+        const idx = availableLetters.findIndex(l => l === letter)
+        if (idx !== -1) {
+          e.preventDefault()
+          selectLetter(letter, idx)
+        }
+      } else if (key === 'Backspace') {
+        e.preventDefault()
+        const lastFilled = [...selectedAnswer].map((l, i) => ({ l, i })).filter(x => x.l !== "").pop()
+        if (lastFilled) removeLetter(lastFilled.i)
+      } else if (key === 'Enter') {
+        if (!selectedAnswer.includes("")) checkAnswer()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [gameData, availableLetters, selectedAnswer, isCorrect])
 
 
   const selectLetter = (letter: string, index: number) => {
@@ -148,29 +152,32 @@ export default function FourPicsOneWord() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-800 via-blue-950 to-black flex items-center justify-center">
-        <div className="text-white text-2xl">Loading your game...</div>
+      <div className="min-h-[calc(100vh-56px-56px)] relative flex items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/40 via-slate-950 to-black" />
+        <div className="text-white/90 text-2xl">Loading your game...</div>
       </div>
     )
   }
 
   if (!gameData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-800 via-blue-950 to-black flex items-center justify-center">
+      <div className="min-h-[calc(100vh-56px-56px)] flex items-center justify-center">
         <div className="text-white text-2xl">No game data found. Please start a new game.</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-800 via-blue-950 to-black p-4">
+    <div className="min-h-[calc(100vh-56px-56px)] relative p-4">
+      {/* Decorative background */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/40 via-slate-950 to-black" />
       <div className="max-w-2xl mx-auto">
         {/* Back Button */}
         <div className="mb-4">
           <Button
             variant="outline"
             onClick={() => router.push('/')}
-            className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20 shadow-sm"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -179,36 +186,43 @@ export default function FourPicsOneWord() {
         </div>
 
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-yellow-300" />
-            <span className="text-white font-bold text-xl">{score}</span>
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center gap-2 rounded-full bg-yellow-400/10 ring-1 ring-yellow-300/30 px-3 py-1.5">
+            <Trophy className="w-5 h-5 text-yellow-300" />
+            <span className="text-white font-bold text-lg leading-none">{score}</span>
           </div>
-
+          {gameData?.answer && (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-500/15 text-orange-100 ring-1 ring-inset ring-orange-300/30">
+                {gameData.answer.length} letters
+              </span>
+            </div>
+          )}
           <Button
             variant="outline"
             size="sm"
             onClick={useHint}
             disabled={score < 50}
-            className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20 disabled:opacity-50"
           >
-            <Lightbulb className="w-4 h-4 mr-1" />
-            Hint (50)
+            <Lightbulb className="w-4 h-4 mr-1 text-yellow-300" />
+            Hint
+            <span className="ml-2 inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/80 ring-1 ring-white/15">-50</span>
           </Button>
         </div>
 
         {/* Images Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           {gameData.image_paths && gameData.image_paths.length > 0 ? (
             gameData.image_paths.map((filename, index) => (
-              <Card key={index} className="overflow-hidden">
+              <Card key={index} className="group overflow-hidden border-white/10 bg-white/5 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)] hover:shadow-[0_14px_38px_-12px_rgba(0,0,0,0.6)] transition-shadow">
                 <CardContent className="p-0">
-                  <Image 
-                    src={`/generated_images/${filename}`} 
-                    width={150} 
-                    height={150} 
-                    alt={`Clue ${index + 1}`} 
-                    className="w-full h-40 object-cover" 
+                  <Image
+                    src={`/generated_images/${filename}`}
+                    width={400}
+                    height={300}
+                    alt={`Clue ${index + 1}`}
+                    className="w-full aspect-square md:aspect-[4/3] object-cover scale-100 group-hover:scale-[1.03] transition-transform duration-300 ease-out"
                   />
                 </CardContent>
               </Card>
@@ -216,25 +230,28 @@ export default function FourPicsOneWord() {
           ) : (
             // Fallback if no images are generated yet
             Array.from({ length: 4 }, (_, index) => (
-              <Card key={index} className="overflow-hidden">
-                <CardContent className="p-0 flex items-center justify-center h-40 bg-gray-200">
-                  <div className="text-gray-500 text-center p-2">
-                    {gameData.image_prompts[index]?.substring(0, 50)}...
-                  </div>
-                </CardContent>
-              </Card>
+              <div
+                key={index}
+                className="rounded-lg border border-white/10 bg-white/5 h-40 overflow-hidden relative"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/0 animate-[shimmer_1.2s_infinite]" />
+              </div>
             ))
           )}
         </div>
 
         {/* Answer Slots */}
-        <div className={`flex justify-center gap-2 mb-8 ${isWrong ? "animate-bounce" : ""}`}>
+    <div className={`flex justify-center gap-2.5 mb-6 ${isWrong ? "animate-shake" : ""}`}>
           {selectedAnswer.map((letter, index) => (
             <Button
               key={index}
               variant="outline"
-              className={`w-12 h-12 text-xl font-bold border-2 hover:bg-gray-50 ${
-                isWrong ? "bg-red-50 border-red-300 text-red-700" : "bg-white border-gray-300"
+      className={`w-14 h-14 text-2xl font-bold border-2 rounded-md shadow-sm transition-colors ${
+                isWrong
+                  ? "bg-red-100/20 border-red-300/60 text-red-100"
+                  : letter
+                  ? "bg-white text-slate-900 border-white hover:bg-white/90"
+                  : "bg-white/5 text-white/70 border-white/20 hover:bg-white/10"
               }`}
               onClick={() => removeLetter(index)}
             >
@@ -244,12 +261,12 @@ export default function FourPicsOneWord() {
         </div>
 
         {/* Available Letters */}
-        <div className="grid grid-cols-6 gap-2 mb-8">
+    <div className="grid grid-cols-6 gap-2.5 mb-24">
           {availableLetters.map((letter, index) => (
             <Button
               key={index}
               variant="secondary"
-              className="h-12 text-lg font-bold bg-white/90 hover:bg-white border border-gray-200"
+      className="h-14 text-xl font-bold bg-white text-slate-900 hover:bg-white/90 active:translate-y-[1px] border border-white shadow-sm"
               onClick={() => selectLetter(letter, index)}
             >
               {letter}
@@ -257,19 +274,19 @@ export default function FourPicsOneWord() {
           ))}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4 justify-center mb-6">
+        {/* Action Buttons - sticky on mobile */}
+        <div className="fixed left-0 right-0 bottom-16 md:static md:bottom-auto md:mb-6 flex gap-4 justify-center px-4 py-3 bg-slate-900/60 supports-[backdrop-filter]:bg-slate-900/30 backdrop-blur border-t border-white/10">
           <Button
             onClick={checkAnswer}
             disabled={selectedAnswer.includes("") || isCorrect}
-            className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 text-lg"
+            className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 text-lg border border-white/10 shadow"
           >
             Check Answer
           </Button>
           <Button
             variant="outline"
             onClick={resetLevel}
-            className="bg-white/20 border-white/30 text-white hover:bg-white/30 px-6 py-3"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20 px-6 py-3"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset
@@ -278,26 +295,44 @@ export default function FourPicsOneWord() {
 
         {/* Success Message */}
         {isCorrect && (
-          <div className="fixed inset-0 bg-transparent backdrop-blur-3xl bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <Card className="bg-green-100 border-green-300 max-w-md w-full mx-auto">
+          <div className="fixed inset-0 bg-orange-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            {/* Confetti */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              {Array.from({ length: 14 }).map((_, i) => (
+                <span key={i} className="confetti-piece" />
+              ))}
+            </div>
+            <Card className="max-w-md w-full mx-auto border-white/20 bg-orange-500/20 text-white shadow-2xl">
               <CardContent className="p-6 text-center">
-                <h2 className="text-2xl font-bold text-green-800 mb-3">Correct! 🎉</h2>
-                <p className="text-green-700 mb-4">
-                  The answer was <strong>{gameData.answer.toUpperCase()}</strong>
-                </p>
+                <h2 className="text-2xl font-bold text-white mb-3">Ẹ kú se! 🎉</h2>
+                <div className="bg-orange-500/10 border border-orange-400/30 rounded-lg p-4 mb-4">
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-orange-100 mb-2">
+                      <span className="text-2xl">{gameData.answer}</span>
+                    </p>
+                    <p className="text-orange-200 text-sm mb-1">
+                      Pronunciation: <span className="font-semibold">{gameData.pronunciation || 'Not available'}</span>
+                    </p>
+                    <p className="text-orange-200 text-sm">
+                      English: <span className="font-semibold">{gameData.english_word || 'Not available'}</span>
+                    </p>
+                  </div>
+                </div>
                 {gameData.educational_fact && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <h3 className="text-blue-800 font-semibold mb-2 flex items-center justify-center">
-                      💡 Did you know?
+                  <div className="bg-blue-500/10 border border-blue-400/30 rounded-lg p-4 mb-4 text-left">
+                    <h3 className="text-blue-200 font-semibold mb-2 flex items-center">
+                      <span className="mr-2">💡</span> Did you know?
                     </h3>
-                    <p className="text-blue-700 text-sm leading-relaxed">
+                    <p className="text-blue-100 text-sm leading-relaxed">
                       {gameData.educational_fact}
                     </p>
                   </div>
                 )}
-                <Button onClick={playAgain} className="bg-green-600 hover:bg-green-700">
-                  Play Again
-                </Button>
+                <div className="flex justify-center">
+                  <Button onClick={playAgain} className="bg-orange-600 hover:bg-orange-700 text-white">
+                    Learn More
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -305,22 +340,22 @@ export default function FourPicsOneWord() {
 
         {/* Error Message */}
         {isWrong && (
-          <Card className="bg-red-100 border-red-300 mb-6 animate-pulse">
+          <Card className="bg-red-500/10 border-red-400/40 mb-6 animate-pulse">
             <CardContent className="p-6 text-center">
-              <h2 className="text-2xl font-bold text-red-800 mb-2">Wrong Answer! ❌</h2>
-              <p className="text-red-700 mb-2">
+              <h2 className="text-2xl font-bold text-red-200 mb-2">Wrong Answer! ❌</h2>
+              <p className="text-red-200/90 mb-2">
                 <strong>&quot;{wrongAnswer}&quot;</strong> is not correct.
               </p>
-              <p className="text-red-600 text-sm">Try again! Look more carefully at the images.</p>
+              <p className="text-red-200/80 text-sm">Try again! Look carefully at the images.</p>
             </CardContent>
           </Card>
         )}
 
         {/* Hint Display */}
         {showHint && (
-          <Card className="bg-blue-100 border-blue-300 mb-6">
+          <Card className="bg-blue-500/10 border-blue-400/30 mb-6">
             <CardContent className="p-4 text-center">
-              <p className="text-blue-800">💡 Hint: Think about what all four images have in common!</p>
+              <p className="text-blue-100">💡 Hint: Think about what all four images have in common!</p>
             </CardContent>
           </Card>
         )}

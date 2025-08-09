@@ -2,37 +2,41 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { SegmentedControl } from "@/components/ui/segmented-control"
+import Loader from "@/components/ui/loader"
+import { Sparkles } from "lucide-react"
 
 const predefinedTopics = [
-  "Chemistry",
+  "Family",
+  "Body Parts", 
+  "Colors",
   "Animals",
-  "Nature",
-  "Technologia",
-  "Sports",
   "Food",
+  "Nature",
 ]
 
 const difficulties = [
-  { label: "Easy", value: "easy", emoji: "🧊" },
-  { label: "Medium", value: "medium", emoji: "🧊🧊" },
-  { label: "Hard", value: "hard", emoji: "🧊🧊🧊" },
+  { label: "Easy", value: "easy", emoji: "🌱" },
+  { label: "Medium", value: "medium", emoji: "🌿" },
+  { label: "Hard", value: "hard", emoji: "🌳" },
 ]
 
 export default function FourPicsOneWordLanding() {
   const [customTopic, setCustomTopic] = useState("")
   const [difficulty, setDifficulty] = useState("easy")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const backendUrl = "http://127.0.0.1:5000"
 
 
   const handleCustomSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!customTopic.trim()) return
 
-    setIsLoading(true)
+  setIsLoading(true)
+  setError(null)
     try {
-      const response = await fetch(`${backendUrl}/generation`, {
+      const response = await fetch('/api/generation', {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -50,19 +54,22 @@ export default function FourPicsOneWordLanding() {
         // Store the game data in sessionStorage and navigate to game
         sessionStorage.setItem('gameData', JSON.stringify(data))
         router.push('/topic')
+      } else {
+        setError("Invalid response. Please try again.")
       }
     } catch (error) {
       console.error("Failed to submit topic:", error)
-      alert("Failed to generate game. Please try again.")
+      setError("Failed to generate game. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
   const handlePredefinedClick = async (topic: string) => {
-    setIsLoading(true)
+  setIsLoading(true)
+  setError(null)
     try {
-      const response = await fetch(`${backendUrl}/generation`, {
+      const response = await fetch('/api/generation', {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -80,30 +87,47 @@ export default function FourPicsOneWordLanding() {
         // Store the game data in sessionStorage and navigate to game
         sessionStorage.setItem('gameData', JSON.stringify(data))
         router.push('/topic')
+      } else {
+        setError("Invalid response. Please try again.")
       }
     } catch (error) {
       console.error("Failed to submit topic:", error)
-      alert("Failed to generate game. Please try again.")
+      setError("Failed to generate game. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-800 via-blue-950 to-black flex items-center justify-center p-4">
-      <div className="bg-white/80 rounded-xl shadow-lg p-8 max-w-md w-full">
-        <h1 className="text-3xl font-bold text-center mb-6 text-purple-700">4 Pics 1 Word</h1>
-        
+    <div className="min-h-[calc(100vh-56px-56px)] relative flex items-center justify-center p-4">
+      {/* Decorative background */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-orange-800 via-orange-950 to-black" />
+        <div className="relative bg-orange-950/70 border border-white/10 backdrop-blur-md rounded-3xl shadow-2xl p-6 md:p-9 max-w-xl w-full text-slate-100">
+          <div className="flex flex-col items-center text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1 mb-3">
+              <Sparkles className="w-4 h-4 text-orange-300" />
+              <span className="text-xs text-slate-100">Learn Yoruba with AI</span>
+            </div>
+            <h1 className="text-4xl font-extrabold tracking-tight mb-1">Yoruba 4 Pics 1 Word</h1>
+            <p className="text-slate-200 mb-5">Learn Yoruba vocabulary through visual puzzles!</p>
+          <div className="h-px w-24 bg-gradient-to-r from-transparent via-orange-300/30 to-transparent mb-4" />
+        </div>
+
         {isLoading && (
-          <div className="text-center mb-6">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-            <p className="text-purple-600 mt-2">Generating your puzzle...</p>
+          <div className="absolute inset-0 rounded-2xl bg-black/30 backdrop-blur-sm grid place-items-center z-10">
+            <Loader label="Generating your puzzle..." />
           </div>
         )}
-        
+
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-400/30 bg-red-500/10 text-red-200 px-3 py-2 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Custom Topic Form */}
         <form onSubmit={handleCustomSubmit} className="mb-6">
-          <label htmlFor="custom-topic" className="block text-lg font-medium mb-2 text-gray-700">Enter a custom topic:</label>
+          <label htmlFor="custom-topic" className="block text-base font-medium mb-2 text-slate-100">Enter a custom topic</label>
           <div className="flex gap-2">
             <input
               id="custom-topic"
@@ -111,48 +135,45 @@ export default function FourPicsOneWordLanding() {
               value={customTopic}
               onChange={e => setCustomTopic(e.target.value)}
               disabled={isLoading}
-              className="flex-1 px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:bg-gray-100"
+              className="flex-1 px-4 py-3 rounded-lg border border-white/20 bg-white text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:opacity-60"
               placeholder="e.g. Space, Movies, History"
             />
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 text-white font-bold px-4 py-2 rounded"
+              className="bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold px-5 py-3 rounded-lg shadow"
             >
               {isLoading ? "Generating..." : "Start"}
             </button>
           </div>
+          <p className="mt-2 text-xs text-slate-300">Tip: Be specific for better images (e.g., “Ancient Egypt”, “Solar system”).</p>
           {/* Difficulty Selector */}
           <div className="mb-6">
-            <label htmlFor="difficulty-select" className="block text-lg font-medium mt-2 text-gray-700">Choose Difficulty:</label>
-            <select
-              id="difficulty-select"
+            <label className="block text-base font-medium mt-3 mb-2 text-slate-100">Choose difficulty</label>
+            <SegmentedControl
+              options={difficulties}
               value={difficulty}
-              onChange={e => setDifficulty(e.target.value)}
+              onChange={setDifficulty}
               disabled={isLoading}
-              className="w-full mt-2 px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg disabled:bg-gray-100"
-            >
-              {difficulties.map((d) => (
-                <option key={d.value} value={d.value}>
-                  {d.label} {d.emoji}
-                </option>
-              ))}
-            </select>
+            />
+            <p className="mt-2 text-xs text-slate-300">Higher difficulty may use longer words or subtler clues.</p>
           </div>
         </form>
-        <div className="mb-4 text-center text-gray-600 font-semibold">Or select a topic:</div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="mb-3 text-center text-slate-200 font-medium">Or select a topic</div>
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-3">
           {predefinedTopics.map(topic => (
             <button
               key={topic}
               disabled={isLoading}
               onClick={() => handlePredefinedClick(topic)}
-              className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 text-white font-bold py-2 rounded shadow"
+              className="group relative overflow-hidden rounded-lg border border-white/15 bg-orange-500/70 px-5 py-3 text-slate-100 font-semibold shadow transition hover:bg-slate-700/70 disabled:opacity-60"
             >
-              {topic}
+              <span className="absolute inset-0 bg-gradient-to-r from-orange-600/0 via-orange-500/0 to-orange-600/0 group-hover:from-orange-600/15 group-hover:via-orange-500/10 group-hover:to-orange-600/15 transition-opacity" />
+              <span className="relative">{topic}</span>
             </button>
           ))}
         </div>
+        <div className="mt-6 text-center text-xs text-slate-300">You can always change topic and difficulty from the home screen.</div>
       </div>
     </div>
   )
