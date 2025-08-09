@@ -5,8 +5,8 @@ import { Button } from "./button"
 import { Wallet, Copy, CheckCircle } from "lucide-react"
 
 export function WalletConnection() {
-  const [isConnected, setIsConnected] = useState(false)
-  const [address, setAddress] = useState("")
+  const [isConnected, setIsConnected] = useState(true)
+  const [address, setAddress] = useState("0x742d35Cc6635C0532925a3b8D4750e8e4362e41D")
   const [isConnecting, setIsConnecting] = useState(false)
   const [copied, setCopied] = useState(false)
 
