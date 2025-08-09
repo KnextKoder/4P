@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import { WalletConnection } from "@/components/ui/wallet-connection";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,8 +32,11 @@ export default function RootLayout({
         <div className="min-h-screen flex flex-col">
           <header className="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-slate-900/40 bg-slate-900/30 border-b border-white/10">
             <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
-              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-white truncate mr-2">Yoruba 4 Pics 1 Word</h1>
-              <Link href="/" className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-white hover:bg-white/15 ring-1 ring-inset ring-white/15 flex-shrink-0">Home</Link>
+              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-white truncate mr-2">4P</h1>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Link href="/" className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-white hover:bg-white/15 ring-1 ring-inset ring-white/15 flex-shrink-0">Home</Link>
+                <WalletConnection />
+              </div>
             </div>
           </header>
           <main className="flex-1">
