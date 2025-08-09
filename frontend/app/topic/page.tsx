@@ -13,6 +13,7 @@ interface GameData {
   pronunciation: string
   image_prompts: string[]
   image_paths: string[]
+  image_data: string[] // Base64 image data for serverless compatibility
   educational_fact: string
 }
 
@@ -213,7 +214,23 @@ export default function FourPicsOneWord() {
 
         {/* Images Grid */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          {gameData.image_paths && gameData.image_paths.length > 0 ? (
+          {gameData.image_data && gameData.image_data.length > 0 ? (
+            // Use base64 image data (serverless-compatible)
+            gameData.image_data.map((base64Data, index) => (
+              <Card key={index} className="group overflow-hidden border-white/10 bg-white/5 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)] hover:shadow-[0_14px_38px_-12px_rgba(0,0,0,0.6)] transition-shadow">
+                <CardContent className="p-0">
+                  <Image
+                    src={`data:image/png;base64,${base64Data}`}
+                    width={400}
+                    height={300}
+                    alt={`Clue ${index + 1}`}
+                    className="w-full aspect-square md:aspect-[4/3] object-cover scale-100 group-hover:scale-[1.03] transition-transform duration-300 ease-out"
+                  />
+                </CardContent>
+              </Card>
+            ))
+          ) : gameData.image_paths && gameData.image_paths.length > 0 ? (
+            // Fallback to file paths (local development)
             gameData.image_paths.map((filename, index) => (
               <Card key={index} className="group overflow-hidden border-white/10 bg-white/5 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)] hover:shadow-[0_14px_38px_-12px_rgba(0,0,0,0.6)] transition-shadow">
                 <CardContent className="p-0">

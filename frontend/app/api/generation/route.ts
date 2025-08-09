@@ -2,8 +2,6 @@
 import { z } from 'zod'
 import Groq from "groq-sdk";
 import { GoogleGenAI, Modality } from "@google/genai";
-import * as fs from "node:fs";
-import * as path from "node:path";
 
 // Initialize Groq client
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -25,6 +23,7 @@ interface GeneratedResponse {
   english_word: string
   image_prompts: string[]
   image_paths: string[]
+  image_data: string[] // Base64 image data for serverless compatibility
   educational_fact: string
   pronunciation: string
 }  export async function POST(request: NextRequest) {
@@ -113,12 +112,11 @@ interface GeneratedResponse {
       // Generate images in parallel using the image generation function
       console.log("Generating images for prompts...")
       const imageGenerationPromises = rawResult.image_prompts.map(async (imagePrompt: string, index: number) => {
-        const filename = `${rawResult.answer}_${index + 1}.png`
         try {
-          const imagePath = await generateImage(imagePrompt, filename)
-          if (imagePath) {
+          const imageData = await generateImage(imagePrompt, index)
+          if (imageData) {
             console.log(`Generated image for prompt: ${imagePrompt.substring(0, 50)}...`)
-            return imagePath
+            return imageData
           } else {
             console.log(`Failed to generate image for prompt: ${imagePrompt.substring(0, 50)}...`)
             return null
@@ -130,14 +128,15 @@ interface GeneratedResponse {
       })
 
       const imageResults = await Promise.all(imageGenerationPromises)
-      const imagePaths = imageResults.filter(path => path !== null) as string[]
+      const imageDataArray = imageResults.filter(data => data !== null) as string[]
 
       const result: GeneratedResponse = {
         answer: rawResult.answer!,
         english_word: rawResult.english_word || "unknown",
         pronunciation: rawResult.pronunciation || "",
         image_prompts: rawResult.image_prompts!,
-        image_paths: imagePaths,
+        image_paths: [], // Empty for serverless compatibility
+        image_data: imageDataArray, // Base64 image data
         educational_fact: rawResult.educational_fact || `${rawResult.answer} is an interesting Yoruba word to learn!`
       }
 
@@ -154,31 +153,15 @@ interface GeneratedResponse {
     }
   }
 
-  // Image generation function using Google Gemini
-  async function generateImage(prompt: string, outputFilename: string): Promise<string | null> {
+  // Image generation function using Google Gemini - returns base64 data for serverless compatibility
+  async function generateImage(prompt: string, index: number): Promise<string | null> {
     try {
       if (!process.env.GOOGLE_AI_API_KEY) {
         console.error("Google AI API key not found")
         return null
       }
-
-      // Create the public directory for generated images (directly accessible by Next.js)
-      const publicDir = path.join(process.cwd(), 'public', 'generated_images')
-      if (!fs.existsSync(publicDir)) {
-        fs.mkdirSync(publicDir, { recursive: true })
-      }
-
-      const baseFilename = path.basename(outputFilename)
-      const outputPath = path.join(publicDir, baseFilename)
       
-      // Check if image already exists to avoid regeneration
-      if (fs.existsSync(outputPath)) {
-        console.log(`Image already exists: ${baseFilename}`)
-        return baseFilename
-      }
-      
-      console.log(`Generating image for prompt: ${prompt.substring(0, 50)}...`)
-      console.log(`Saving to public directory: ${outputPath}`)
+      console.log(`Generating image ${index + 1} for prompt: ${prompt.substring(0, 50)}...`)
       
       // Generate image using Google GenAI
       const response = await genai.models.generateContent({
@@ -189,7 +172,7 @@ interface GeneratedResponse {
         },
       })
 
-      // Process the response to extract and save the image
+      // Process the response to extract the base64 image data
       if (response.candidates && response.candidates[0]?.content?.parts) {
         for (const part of response.candidates[0].content.parts) {
           if (part.text) {
@@ -197,11 +180,8 @@ interface GeneratedResponse {
           } else if (part.inlineData && part.inlineData.data) {
             const imageData = part.inlineData.data
             if (typeof imageData === 'string') {
-              const buffer = Buffer.from(imageData, "base64")
-              fs.writeFileSync(outputPath, buffer)
-              console.log(`Image saved to public directory: ${outputPath}`)
-              console.log(`Image accessible at: /generated_images/${baseFilename}`)
-              return baseFilename
+              console.log(`Image ${index + 1} generated successfully`)
+              return imageData // Return base64 data directly
             } else {
               console.log("Image data is not a string")
             }
