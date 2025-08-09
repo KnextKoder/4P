@@ -45,12 +45,12 @@ export function SegmentedControl({ options, value, onChange, disabled, className
             aria-selected={selected}
             disabled={disabled}
             onClick={() => onChange(opt.value)}
-            className={`relative z-10 flex-1 px-3 py-2 text-sm md:text-base font-medium rounded-md transition-colors
+            className={`relative z-10 flex-1 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm md:text-base font-medium rounded-md transition-colors
             ${selected ? "text-blue-900" : "text-white/80 hover:text-white"} disabled:opacity-60 disabled:cursor-not-allowed`}
           >
             <span className="inline-flex items-center gap-1 justify-center">
-              {opt.label}
-              {opt.emoji ? <span aria-hidden>{opt.emoji}</span> : null}
+              <span className="truncate">{opt.label}</span>
+              {opt.emoji ? <span aria-hidden className="text-xs sm:text-sm">{opt.emoji}</span> : null}
             </span>
           </button>
         )
